@@ -20,3 +20,11 @@ class CycleRead(CycleBase):
 class CycleUpdate(BaseModel):
     end_time: Optional[datetime] = None
     notes: Optional[str] = None
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

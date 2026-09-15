@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from app.config import settings
-from app.routers import cycles
+from app.routers import cycles, auth
 
 app = FastAPI(title=settings.app_name)
+app.include_router(auth.router)
 app.include_router(cycles.router)
 
 @app.get("/")
