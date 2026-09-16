@@ -33,3 +33,15 @@ class StationAverage(BaseModel):
     station_name: str
     average_cycle_seconds: float
     completed_cycle_count: int
+
+class LapCreate(BaseModel):
+    note: Optional[str] = None
+
+class LapRead(BaseModel):
+    id: int
+    cycle_id: int
+    recorded_at: datetime
+    note: Optional[str] = None
+
+    class Config:
+        from_attributes = True

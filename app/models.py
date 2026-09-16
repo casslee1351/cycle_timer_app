@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from app.database import Base
 
 class Cycle(Base):
@@ -16,3 +16,11 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+
+class Lap(Base):
+    __tablename__ = "laps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    cycle_id = Column(Integer, ForeignKey("cycles.id"), nullable=False, index=True)
+    recorded_at = Column(DateTime, nullable=False)
+    note = Column(String, nullable=True)
