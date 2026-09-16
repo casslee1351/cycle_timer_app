@@ -42,6 +42,8 @@ class LapRead(BaseModel):
     cycle_id: int
     recorded_at: datetime
     note: Optional[str] = None
+    lap_number: int
+    elapsed_since_previous_seconds: float
 
     class Config:
         from_attributes = True

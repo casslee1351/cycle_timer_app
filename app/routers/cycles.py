@@ -66,7 +66,25 @@ def create_lap(cycle_id: int, lap: schemas.LapCreate, db: Session = Depends(get_
     db.add(db_lap)
     db.commit()
     db.refresh(db_lap)
-    return db_lap
+
+    previous_lap = (
+        db.query(models.Lap)
+        .filter(models.Lap.cycle_id == cycle_id, models.Lap.id != db_lap.id)
+        .order_by(models.Lap.recorded_at.desc())
+        .first()
+    )
+    previous_time = previous_lap.recorded_at if previous_lap else db_cycle.start_time
+    lap_count = db.query(models.Lap).filter(models.Lap.cycle_id == cycle_id).count()
+    elapsed = (db_lap.recorded_at - previous_time).total_seconds()
+
+    return schemas.LapRead(
+        id=db_lap.id,
+        cycle_id=db_lap.cycle_id,
+        recorded_at=db_lap.recorded_at,
+        note=db_lap.note,
+        lap_number=lap_count,
+        elapsed_since_previous_seconds=elapsed,
+    )
 
 @router.get("/{cycle_id}/laps", response_model=List[schemas.LapRead])
 def list_laps(cycle_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
@@ -74,4 +92,20 @@ def list_laps(cycle_id: int, db: Session = Depends(get_db), current_user: models
     if db_cycle is None:
         raise HTTPException(status_code=404, detail="Cycle not found")
     
-    return db.query(models.Lap).filter(models.Lap.cycle_id == cycle_id).all()
+    laps = db.query(models.Lap).filter(models.Lap.cycle_id == cycle_id).order_by(models.Lap.recorded_at).all()
+
+    results = []
+    previous_time = db_cycle.start_time
+    for index, lap in enumerate(laps, start=1):
+        elapsed = (lap.recorded_at - previous_time).total_seconds()
+        results.append(schemas.LapRead(
+            id=lap.id,
+            cycle_id=lap.cycle_id,
+            recorded_at=lap.recorded_at,
+            note=lap.note,
+            lap_number=index,
+            elapsed_since_previous_seconds=elapsed
+        ))
+        previous_time = lap.recorded_at
+
+    return results
