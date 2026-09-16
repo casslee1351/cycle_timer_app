@@ -28,3 +28,8 @@ class UserCreate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class StationAverage(BaseModel):
+    station_name: str
+    average_cycle_seconds: float
+    completed_cycle_count: int

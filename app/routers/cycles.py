@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional
 
 from app.database import get_db
@@ -42,3 +43,13 @@ def update_cycle(cycle_id: int, update: schemas.CycleUpdate, db: Session = Depen
     db.commit()
     db.refresh(db_cycle)
     return db_cycle
+
+@router.get("analytics/average-by-station", response_model=List[schemas.StationAverage])
+def average_cycle_time_by_station(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    duration_seconds = func.avg(func.julianday(models.Cycle.end_time) - func.julianday(models.Cycle.start_time)) * 86400.0
+
+    results = db.query(models.Cycle.station_name, duration_seconds.label("average_cycle_seconds"), func.count(models.Cycle.id).label("completed_cycle_count")) \
+                .filter(models.Cycle.end_time.isnot(None)) \
+                .group_by(models.Cycle.station_name).all()
+
+    return results
